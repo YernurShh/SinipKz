@@ -30,7 +30,7 @@ import {
 type Tab = 'announcements' | 'chat';
 
 export default function CommunicationHub() {
-  const { isHomeroom, openAuth } = useApp();
+  const { isTeacher, openAuth } = useApp();
   const [tab, setTab] = useState<Tab>('announcements');
 
   const tabs: { key: Tab; label: string; icon: any }[] = [
@@ -62,7 +62,7 @@ export default function CommunicationHub() {
         ))}
       </div>
 
-      {tab === 'announcements' && <Announcements canPost={isHomeroom} />}
+      {tab === 'announcements' && <Announcements canPost={isTeacher} />}
       {tab === 'chat' && <Chat onNeedAuth={() => openAuth('login')} />}
     </div>
   );
@@ -71,10 +71,9 @@ export default function CommunicationHub() {
 /* ---------------- Хабарламалар ---------------- */
 
 function Announcements({ canPost }: { canPost: boolean }) {
-  const { user, isTeacher, isHomeroom } = useApp();
-  // Сынып жетекшісі мен мұғалімдер кез келген хабарламаны өшіре алады,
-  // қалған қолданушылар — тек өздері жариялағанын.
-  const canManage = isHomeroom || isTeacher;
+  const { user, isTeacher } = useApp();
+  // Мұғалімдер кез келген хабарламаны өшіре алады.
+  const canManage = isTeacher;
   const [delId, setDelId] = useState<string | null>(null);
   const [delErr, setDelErr] = useState('');
 

@@ -29,19 +29,14 @@ import {
   QueryConstraint,
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from './firebase';
-import { CLASS_ID, HOMEROOM_TEACHER_EMAIL, TEACHER_EMAILS } from './config';
+import { CLASS_ID } from './config';
 import type { UserProfile, UserRole } from './types';
-
-function resolveRole(email: string, requested: UserRole): UserRole {
-  return TEACHER_EMAILS.includes(email.toLowerCase()) ? 'teacher' : requested;
-}
 
 interface AppContextType {
   user: UserProfile | null;
   firebaseUser: User | null;
   loading: boolean;
   isTeacher: boolean;
-  isHomeroom: boolean;
   authModal: 'login' | 'register' | null;
   openAuth: (mode?: 'login' | 'register') => void;
   closeAuth: () => void;
@@ -51,7 +46,8 @@ interface AppContextType {
     email: string,
     password: string,
     role: UserRole,
-    studentName?: string
+    studentName?: string,
+    teacherCode?: string
   ) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -95,9 +91,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           id: fbUser.uid,
           name: fbUser.displayName || email.split('@')[0],
           email,
-          role: resolveRole(email, 'student'),
+          role: 'student',
           classId: CLASS_ID,
-          isHomeroom: email === HOMEROOM_TEACHER_EMAIL,
           createdAt: Date.now(),
         };
         await setDoc(ref, profile);
@@ -127,8 +122,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string,
     role: UserRole,
-    studentName?: string
+    studentName?: string,
+    teacherCode?: string
   ) => {
+    if (role === 'teacher') {
+      const verification = await fetch('/api/auth/teacher-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: teacherCode?.trim() || '' }),
+      });
+      if (!verification.ok) {
+        throw new Error(verification.status === 400 ? 'TEACHER_CODE_REQUIRED' : 'TEACHER_CODE_INVALID');
+      }
+    }
+
     const cleanEmail = email.trim().toLowerCase();
     const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
     await updateProfile(cred.user, { displayName: name });
@@ -136,9 +143,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: cred.user.uid,
       name,
       email: cleanEmail,
-      role: resolveRole(cleanEmail, role),
+      role,
       classId: CLASS_ID,
-      isHomeroom: cleanEmail === HOMEROOM_TEACHER_EMAIL,
       ...(role === 'parent' && studentName ? { studentName } : {}),
       createdAt: Date.now(),
     };
@@ -162,7 +168,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       firebaseUser,
       loading,
       isTeacher: user?.role === 'teacher',
-      isHomeroom: !!user?.isHomeroom,
       authModal,
       openAuth: (mode: 'login' | 'register' = 'login') => setAuthModal(mode),
       closeAuth: () => setAuthModal(null),
