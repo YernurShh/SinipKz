@@ -115,7 +115,7 @@ export default function Header() {
                     {user.name}
                   </span>
                   <span className="block text-[10px] font-semibold text-sky-500">
-                    {user.isHomeroom ? 'Сынып жетекшісі' : ROLE_LABEL[user.role]}
+                    {ROLE_LABEL[user.role]}
                   </span>
                 </span>
               </button>

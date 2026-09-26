@@ -1,18 +1,8 @@
 // Сыныпқа қатысты негізгі баптаулар.
-// Мұғалім / сынып жетекші рөлі осы e-mail тізімі арқылы анықталады.
 
 export const CLASS_ID = '8-A';
 export const CLASS_LABEL = '8 «А» сыныбы';
 export const SCHOOL_NAME = 'Мектеп-лицей';
-
-/** Сынып жетекшісінің e-mail-ы. Тек осы адам сынып хабарламасын жариялай алады. */
-export const HOMEROOM_TEACHER_EMAIL = 'nurmankyzy83@mail.ru';
-
-/** Мұғалім құқығы бар e-mail-дар (сынып жетекшісі де осында кіреді). */
-export const TEACHER_EMAILS = [
-  HOMEROOM_TEACHER_EMAIL,
-  'teacher@school.kz',
-];
 
 export const DAYS: { key: DayKey; label: string; short: string }[] = [
   { key: 'monday', label: 'Дүйсенбі', short: 'Дс' },

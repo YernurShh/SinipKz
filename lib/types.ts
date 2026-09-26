@@ -9,7 +9,6 @@ export interface UserProfile {
   role: UserRole;
   classId: string;
   studentName?: string; // ата-ана үшін: баласының аты
-  isHomeroom?: boolean; // сынып жетекшісі ме
   createdAt?: number;
 }
 

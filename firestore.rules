@@ -16,28 +16,29 @@ service cloud.firestore {
       return signedIn() && userDoc().role == 'teacher';
     }
 
-    function isHomeroom() {
-      return signedIn() && userDoc().isHomeroom == true;
-    }
-
-    // Профильдер
+    // Профильдер. Рөлді кейін қолданушы өзі өзгерте алмайды.
     match /users/{uid} {
       allow read: if signedIn();
-      allow create, update: if request.auth.uid == uid;
+      allow create: if request.auth.uid == uid
+        && request.resource.data.id == uid;
+      allow update: if request.auth.uid == uid
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.role == resource.data.role;
     }
 
     // ⚠️ Сабақ кестесі Firestore-да сақталмайды —
     // ол `lib/schedule-data.ts` файлында код арқылы қойылған.
 
-    // Сынып хабарламалары — тек сынып жетекшісі жариялайды.
-    // Өшіру/өңдеу: сынып жетекшісі мен мұғалімдер КЕЗ КЕЛГЕН хабарламаны,
-    // қалғандары тек өзі жариялағанын өзгерте алады.
+    // Сынып хабарламаларын мұғалімдер ғана жариялай алады.
     match /announcements/{id} {
       allow read: if true;
-      allow create: if isHomeroom();
-      allow update, delete: if isHomeroom()
-        || isTeacher()
-        || (signedIn() && resource.data.authorId == request.auth.uid);
+      allow create: if isTeacher()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.content is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.content.size() > 0;
+      allow update, delete: if isTeacher();
     }
 
     // Үй тапсырмасы

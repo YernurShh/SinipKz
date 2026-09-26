@@ -21,6 +21,7 @@ export default function AuthModal() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>('student');
   const [studentName, setStudentName] = useState('');
+  const [teacherCode, setTeacherCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -30,7 +31,7 @@ export default function AuthModal() {
     setBusy(true);
     try {
       if (mode === 'login') await login(email, password);
-      else await register(name.trim(), email, password, role, studentName.trim());
+      else await register(name.trim(), email, password, role, studentName.trim(), teacherCode.trim());
     } catch (err: any) {
       const code: string = err?.code || '';
       const map: Record<string, string> = {
@@ -39,6 +40,8 @@ export default function AuthModal() {
         'auth/weak-password': 'Құпиясөз кемінде 6 таңба болуы керек.',
         'auth/email-already-in-use': 'Бұл e-mail тіркелген. Кіріңіз.',
         'auth/popup-closed-by-user': 'Терезе жабылды.',
+        TEACHER_CODE_REQUIRED: 'Мұғалім кодын енгізіңіз.',
+        TEACHER_CODE_INVALID: 'Мұғалім коды қате.',
       };
       setError(map[code] || err?.message || 'Қате шықты, қайталап көріңіз.');
     } finally {
@@ -86,9 +89,27 @@ export default function AuthModal() {
                 ))}
               </div>
               {role === 'teacher' && (
-                <p className="mt-1.5 text-[11px] text-slate-400">
-                  Мұғалім құқығы тек мектеп бекіткен e-mail-дарға беріледі.
-                </p>
+                <>
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Мұғалім ретінде тіркелу үшін мұғалімдерге арналған код міндетті.
+                  </p>
+                  <div className="mt-3">
+                    <label className="label" htmlFor="teacher-registration-code">
+                      Мұғалім коды
+                    </label>
+                    <input
+                      id="teacher-registration-code"
+                      type="password"
+                      inputMode="text"
+                      autoComplete="new-password"
+                      className="input"
+                      value={teacherCode}
+                      onChange={(e) => setTeacherCode(e.target.value)}
+                      placeholder="Мұғалімдерге арналған код"
+                      required
+                    />
+                  </div>
+                </>
               )}
             </div>
             {role === 'parent' && (
